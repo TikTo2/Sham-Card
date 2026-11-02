@@ -5,10 +5,9 @@ void main() {
   runApp(const ShamCardApp());
 }
 
-const Color purple = Color(0xFF9B6DFF);
-const Color darkBg = Color(0xFF090810);
-const Color lightBg = Color(0xFFF4F1FA);
-const Color darkPanel = Color(0xFF151222);
+const purple = Color(0xFF9B6DFF);
+const darkBg = Color(0xFF090810);
+const darkPanel = Color(0xFF171324);
 
 class ShamCardApp extends StatefulWidget {
   const ShamCardApp({super.key});
@@ -29,21 +28,22 @@ class _ShamCardAppState extends State<ShamCardApp> {
       theme: ThemeData(
         useMaterial3: true,
         brightness: light ? Brightness.light : Brightness.dark,
-        scaffoldBackgroundColor: light ? lightBg : darkBg,
+        scaffoldBackgroundColor:
+            light ? const Color(0xFFF5F2FA) : darkBg,
         colorScheme: ColorScheme.fromSeed(
           seedColor: purple,
           brightness: light ? Brightness.light : Brightness.dark,
         ),
-      ),
-      home: Directionality(
-        textDirection:
-            english ? TextDirection.ltr : TextDirection.rtl,
-        child: MainScreen(
-          english: english,
-          light: light,
-          onLanguage: (v) => setState(() => english = v),
-          onTheme: (v) => setState(() => light = v),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
+      ),
+      home: MainScreen(
+        english: english,
+        light: light,
+        onLanguage: (v) => setState(() => english = v),
+        onTheme: (v) => setState(() => light = v),
       ),
     );
   }
@@ -68,29 +68,29 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int selected = 0;
+  int tab = 0;
   double balance = 2450;
-  final List<String> transactions = [
+  final List<String> history = [
     'Welcome bonus / مكافأة ترحيبية',
-    'Demo payment / عملية تجريبية',
   ];
 
-  String t(String ar, String en) =>
-      widget.english ? en : ar;
+  String t(String ar, String en) => widget.english ? en : ar;
 
-  void demoAdd() {
+  void addDemo() {
     setState(() {
       balance += 100;
-      transactions.insert(
+      history.insert(
         0,
-        t('إضافة تجريبية +100', 'Demo credit +100'),
+        t('إضافة افتراضية +100', 'Demo credit +100'),
       );
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(t(
-        'تمت إضافة 100 إلى الرصيد الافتراضي',
-        '100 added to demo balance',
-      ))),
+      SnackBar(
+        content: Text(t(
+          'تم تحديث الرصيد الافتراضي',
+          'Demo balance updated',
+        )),
+      ),
     );
   }
 
@@ -100,17 +100,16 @@ class _MainScreenState extends State<MainScreen> {
       HomePage(
         english: widget.english,
         balance: balance,
-        onAdd: demoAdd,
-        onOpenWallet: () => setState(() => selected = 3),
-        onOpenMarkets: () => setState(() => selected = 1),
+        onAdd: addDemo,
+        openTab: (v) => setState(() => tab = v),
       ),
       MarketsPage(english: widget.english),
       AssistantPage(english: widget.english),
       WalletPage(
         english: widget.english,
         balance: balance,
-        transactions: transactions,
-        onAdd: demoAdd,
+        history: history,
+        onAdd: addDemo,
       ),
       ProfilePage(
         english: widget.english,
@@ -133,20 +132,19 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     return Scaffold(
-      body: SafeArea(child: IndexedStack(
-        index: selected,
-        children: pages,
-      )),
+      body: SafeArea(
+        child: IndexedStack(index: tab, children: pages),
+      ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: selected,
+        selectedIndex: tab,
         backgroundColor: widget.light
             ? Colors.white
             : const Color(0xFF110E1B),
-        indicatorColor: purple.withOpacity(0.20),
-        onDestinationSelected: (v) =>
-            setState(() => selected = v),
-        destinations: List.generate(5, (i) =>
-          NavigationDestination(
+        indicatorColor: purple.withOpacity(.2),
+        onDestinationSelected: (v) => setState(() => tab = v),
+        destinations: List.generate(
+          5,
+          (i) => NavigationDestination(
             icon: Icon(icons[i]),
             label: labels[i],
           ),
@@ -162,21 +160,19 @@ class HomePage extends StatelessWidget {
   final bool english;
   final double balance;
   final VoidCallback onAdd;
-  final VoidCallback onOpenWallet;
-  final VoidCallback onOpenMarkets;
+  final ValueChanged<int> openTab;
 
   const HomePage({
     super.key,
     required this.english,
     required this.balance,
     required this.onAdd,
-    required this.onOpenWallet,
-    required this.onOpenMarkets,
+    required this.openTab,
   });
 
   @override
   Widget build(BuildContext context) {
-    final t = (String ar, String en) => english ? en : ar;
+    String t(String ar, String en) => english ? en : ar;
 
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -184,93 +180,123 @@ class HomePage extends StatelessWidget {
         const BrandHeader(),
         const SizedBox(height: 28),
         Text(t('مرحباً بك 👋', 'Welcome 👋'),
-          style: const TextStyle(color: Colors.grey)),
+            style: const TextStyle(color: Colors.grey)),
         const SizedBox(height: 5),
-        Text(t('لوحة التحكم', 'Dashboard'),
+        Text(
+          t('لوحة التحكم', 'Dashboard'),
           style: const TextStyle(
-            fontSize: 27,
-            fontWeight: FontWeight.bold,
-          )),
+              fontSize: 28, fontWeight: FontWeight.w900),
+        ),
         const SizedBox(height: 20),
         Container(
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
             gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
               colors: [
-                Color(0xFF6236A0),
-                Color(0xFF211633),
-                Color(0xFF151222),
+                Color(0xFF633A9C),
+                Color(0xFF302047),
+                Color(0xFF171324),
               ],
             ),
+            borderRadius: BorderRadius.circular(25),
             border: Border.all(color: purple.withOpacity(.4)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(t('إجمالي الرصيد الافتراضي',
-                  'Total demo balance')),
-              const SizedBox(height: 17),
-              Text('\$ ${balance.toStringAsFixed(2)}',
+              Row(children: [
+                const Icon(Icons.account_balance_wallet_outlined),
+                const SizedBox(width: 8),
+                Text(t('رصيدك الافتراضي', 'Your demo balance')),
+                const Spacer(),
+                const Icon(Icons.more_horiz),
+              ]),
+              const SizedBox(height: 22),
+              Text(
+                '\$ ${balance.toStringAsFixed(2)}',
                 style: const TextStyle(
-                  fontSize: 32,
+                  fontSize: 34,
                   fontWeight: FontWeight.w900,
-                )),
-              const SizedBox(height: 7),
-              Text(t('رصيد افتراضي للتجربة فقط',
-                  'Virtual balance for demonstration only'),
-                style: const TextStyle(fontSize: 11)),
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                t('قيمة افتراضية للعرض فقط',
+                    'Virtual value for display only'),
+                style: const TextStyle(
+                    color: Color(0xFFD5C8E8), fontSize: 12),
+              ),
               const SizedBox(height: 22),
               Row(children: [
-                Expanded(child: FilledButton.icon(
-                  onPressed: onAdd,
-                  icon: const Icon(Icons.add),
-                  label: Text(t('إضافة تجريبية', 'Demo add')),
-                )),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: onAdd,
+                    icon: const Icon(Icons.add),
+                    label: Text(t('إضافة تجريبية', 'Demo add')),
+                  ),
+                ),
                 const SizedBox(width: 10),
-                Expanded(child: OutlinedButton.icon(
-                  onPressed: onOpenWallet,
-                  icon: const Icon(Icons.history),
-                  label: Text(t('السجل', 'History')),
-                )),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => openTab(3),
+                    icon: const Icon(Icons.history),
+                    label: Text(t('السجل', 'History')),
+                  ),
+                ),
               ]),
             ],
           ),
         ),
         const SizedBox(height: 24),
-        SectionTitle(t('الخدمات', 'Services')),
-        const SizedBox(height: 12),
+        Row(children: [
+          Expanded(child: InfoTile(
+            icon: Icons.swap_horiz,
+            title: t('العمليات', 'Activity'),
+            value: '01',
+          )),
+          const SizedBox(width: 12),
+          Expanded(child: InfoTile(
+            icon: Icons.credit_card,
+            title: t('البطاقة', 'Card'),
+            value: 'DEMO',
+          )),
+        ]),
+        const SizedBox(height: 25),
+        SectionTitle(t('خدمات شام كارد', 'SHAM CARD services')),
+        const SizedBox(height: 13),
         GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 1.35,
+          childAspectRatio: 1.4,
           children: [
-            ServiceTile(
-              icon: Icons.credit_card,
-              title: t('بطاقتي', 'My Card'),
-              subtitle: t('بطاقة افتراضية', 'Virtual card'),
-              onTap: onOpenWallet,
-            ),
             ServiceTile(
               icon: Icons.show_chart,
               title: t('الأسواق', 'Markets'),
-              subtitle: t('بيانات توضيحية', 'Demo data'),
-              onTap: onOpenMarkets,
+              subtitle: t('بيانات توضيحية', 'Demo information'),
+              onTap: () => openTab(1),
+            ),
+            ServiceTile(
+              icon: Icons.auto_awesome,
+              title: t('المساعد الذكي', 'AI assistant'),
+              subtitle: t('مساعد تعليمي', 'Learning assistant'),
+              onTap: () => openTab(2),
             ),
             ServiceTile(
               icon: Icons.account_balance_wallet,
               title: t('المحفظة', 'Wallet'),
-              subtitle: t('رصيد تجريبي', 'Demo balance'),
-              onTap: onOpenWallet,
+              subtitle: t('إدارة الرصيد الافتراضي', 'Demo wallet'),
+              onTap: () => openTab(3),
             ),
             ServiceTile(
-              icon: Icons.auto_awesome,
-              title: t('المساعد', 'Assistant'),
-              subtitle: t('مساعد تعليمي', 'Learning assistant'),
-              onTap: onOpenMarkets,
+              icon: Icons.person_outline,
+              title: t('حسابي', 'My account'),
+              subtitle: t('الإعدادات الشخصية', 'Personal settings'),
+              onTap: () => openTab(4),
             ),
           ],
         ),
@@ -305,7 +331,10 @@ class _MarketsPageState extends State<MarketsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final shown = assets.where((a) =>
+    String t(String ar, String en) =>
+        widget.english ? en : ar;
+
+    final filtered = assets.where((a) =>
       a[0].toLowerCase().contains(search.toLowerCase()) ||
       a[1].toLowerCase().contains(search.toLowerCase())
     ).toList();
@@ -313,24 +342,21 @@ class _MarketsPageState extends State<MarketsPage> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        BrandHeader(),
+        const BrandHeader(),
         const SizedBox(height: 25),
-        Text(widget.english ? 'Markets' : 'الأسواق',
-          style: const TextStyle(
-            fontSize: 27, fontWeight: FontWeight.bold)),
+        SectionTitle(t('الأسواق', 'Markets')),
         const SizedBox(height: 6),
-        Text(widget.english
-            ? 'Illustrative market information'
-            : 'معلومات سوقية توضيحية',
+        Text(t('بيانات تعليمية افتراضية',
+            'Illustrative educational data'),
             style: const TextStyle(color: Colors.grey)),
         const SizedBox(height: 18),
         TextField(
           onChanged: (v) => setState(() => search = v),
           decoration: InputDecoration(
-            hintText: widget.english ? 'Search assets...' : 'ابحث عن أصل...',
+            hintText: t('ابحث عن أصل...', 'Search assets...'),
             prefixIcon: const Icon(Icons.search),
             filled: true,
-            fillColor: darkPanel,
+            fillColor: Theme.of(context).cardColor,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
               borderSide: BorderSide.none,
@@ -338,47 +364,51 @@ class _MarketsPageState extends State<MarketsPage> {
           ),
         ),
         const SizedBox(height: 20),
-        ...shown.map((a) => Card(
-          color: darkPanel,
+        ...filtered.map((a) => Card(
           margin: const EdgeInsets.only(bottom: 10),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: purple.withOpacity(.2),
+              backgroundColor: purple.withOpacity(.18),
               child: Text(a[0][0],
-                style: const TextStyle(color: purple)),
+                  style: const TextStyle(color: purple)),
             ),
             title: Text('${a[0]}  ·  ${a[1]}'),
-            subtitle: Text(widget.english
-                ? 'Illustrative price'
-                : 'سعر توضيحي'),
+            subtitle: Text(t('سعر توضيحي', 'Illustrative price')),
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text('\$${a[2]}',
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(a[3],
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold)),
+                Text(
+                  a[3],
                   style: TextStyle(
                     color: a[3].startsWith('+')
-                        ? Colors.greenAccent
+                        ? Colors.green
                         : Colors.redAccent,
                     fontSize: 12,
-                  )),
+                  ),
+                ),
               ],
             ),
           ),
         )),
+        if (filtered.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(25),
+            child: Text(t('لا توجد نتائج', 'No results found'),
+                textAlign: TextAlign.center),
+          ),
         const SizedBox(height: 15),
-        SectionTitle(widget.english
-            ? 'Illustrative chart'
-            : 'رسم بياني توضيحي'),
+        SectionTitle(t('مخطط توضيحي', 'Illustrative chart')),
         const SizedBox(height: 12),
         Container(
-          height: 170,
-          padding: const EdgeInsets.all(12),
+          height: 180,
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: darkPanel,
-            borderRadius: BorderRadius.circular(18),
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(20),
           ),
           child: CustomPaint(
             painter: DemoChartPainter(),
@@ -406,33 +436,43 @@ class _AssistantPageState extends State<AssistantPage> {
   final controller = TextEditingController();
   final List<Map<String, String>> messages = [];
 
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
   String answer(String question) {
     final q = question.toLowerCase();
 
-    if (q.contains('bitcoin') || q.contains('بتكوين')) {
+    if (q.contains('bitcoin') || q.contains('بتكوين') ||
+        q.contains('بيتكوين')) {
       return widget.english
-          ? 'Bitcoin is a digital asset that operates on a decentralized network.'
-          : 'البيتكوين أصل رقمي يعمل عبر شبكة لامركزية.';
+          ? 'Bitcoin is a digital asset that uses a decentralized network.'
+          : 'البيتكوين أصل رقمي يستخدم شبكة لامركزية لتسجيل العمليات.';
     }
+
     if (q.contains('wallet') || q.contains('محفظة')) {
       return widget.english
           ? 'A digital wallet is a tool for managing digital assets.'
-          : 'المحفظة الرقمية أداة لإدارة الأصول الرقمية.';
+          : 'المحفظة الرقمية أداة لإدارة الأصول الرقمية والمعلومات المرتبطة بها.';
     }
+
     if (q.contains('blockchain') || q.contains('بلوك')) {
       return widget.english
-          ? 'Blockchain is a distributed record of transactions.'
-          : 'البلوك تشين سجل رقمي موزع لتوثيق البيانات والعمليات.';
+          ? 'Blockchain is a distributed digital record.'
+          : 'البلوك تشين هو سجل رقمي موزع يصعب تغيير بياناته السابقة.';
     }
+
     if (q.contains('market') || q.contains('سوق')) {
       return widget.english
-          ? 'A market is where assets are exchanged. Prices can change.'
-          : 'السوق مكان لتبادل الأصول، وقد تتغير الأسعار باستمرار.';
+          ? 'Markets are places where assets are exchanged. Prices can change.'
+          : 'الأسواق أماكن لتبادل الأصول، وتتغير الأسعار فيها بمرور الوقت.';
     }
 
     return widget.english
-        ? 'I am a demo learning assistant. Ask about Bitcoin, wallets, blockchain or markets.'
-        : 'أنا مساعد تعليمي تجريبي. اسألني عن البيتكوين أو المحافظ أو البلوك تشين أو الأسواق.';
+        ? 'I am an educational demo assistant. Ask about Bitcoin, wallets, blockchain or markets.'
+        : 'أنا مساعد تعليمي تجريبي. يمكنني شرح البيتكوين والمحافظ والبلوك تشين والأسواق.';
   }
 
   void send() {
@@ -440,13 +480,16 @@ class _AssistantPageState extends State<AssistantPage> {
     if (value.isEmpty) return;
 
     setState(() {
-      messages.add({'q': value, 'a': answer(value)});
+      messages.add({'question': value, 'answer': answer(value)});
       controller.clear();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    String t(String ar, String en) =>
+        widget.english ? en : ar;
+
     return Column(
       children: [
         Padding(
@@ -456,29 +499,29 @@ class _AssistantPageState extends State<AssistantPage> {
             children: [
               const BrandHeader(),
               const SizedBox(height: 25),
-              Text(widget.english ? 'AI Assistant' : 'المساعد الذكي',
-                style: const TextStyle(
-                  fontSize: 27, fontWeight: FontWeight.bold)),
-              Text(widget.english
-                  ? 'Learn digital finance concepts'
-                  : 'تعلّم المفاهيم المالية الرقمية',
+              SectionTitle(t('المساعد الذكي', 'AI Assistant')),
+              Text(t('مساعد تعليمي للمفاهيم الرقمية',
+                  'Educational digital concepts assistant'),
                   style: const TextStyle(color: Colors.grey)),
             ],
           ),
         ),
         Expanded(
           child: messages.isEmpty
-              ? Center(child: Padding(
-                  padding: const EdgeInsets.all(25),
-                  child: Text(
-                    widget.english
-                        ? 'Hello! Ask me about Bitcoin, wallets or blockchain.'
-                        : 'مرحباً! اسألني عن البيتكوين أو المحافظ أو البلوك تشين.',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.grey, fontSize: 16),
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(25),
+                    child: Text(
+                      t(
+                        'مرحباً! اكتب سؤالك عن العملات الرقمية أو التقنية.',
+                        'Hello! Ask a question about digital assets or technology.',
+                      ),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          color: Colors.grey, fontSize: 16),
+                    ),
                   ),
-                ))
+                )
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 18),
                   itemCount: messages.length,
@@ -488,14 +531,14 @@ class _AssistantPageState extends State<AssistantPage> {
                       Align(
                         alignment: AlignmentDirectional.centerEnd,
                         child: ChatBubble(
-                          text: messages[i]['q']!,
+                          text: messages[i]['question']!,
                           user: true,
                         ),
                       ),
                       Align(
                         alignment: AlignmentDirectional.centerStart,
                         child: ChatBubble(
-                          text: messages[i]['a']!,
+                          text: messages[i]['answer']!,
                           user: false,
                         ),
                       ),
@@ -506,21 +549,20 @@ class _AssistantPageState extends State<AssistantPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(15, 8, 15, 15),
           child: Row(children: [
-            Expanded(child: TextField(
-              controller: controller,
-              onSubmitted: (_) => send(),
-              decoration: InputDecoration(
-                hintText: widget.english
-                    ? 'Write a question...'
-                    : 'اكتب سؤالك...',
-                filled: true,
-                fillColor: darkPanel,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
+            Expanded(
+              child: TextField(
+                controller: controller,
+                onSubmitted: (_) => send(),
+                decoration: InputDecoration(
+                  hintText: t('اكتب سؤالك...', 'Write a question...'),
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
-            )),
+            ),
             const SizedBox(width: 8),
             IconButton.filled(
               onPressed: send,
@@ -538,32 +580,31 @@ class _AssistantPageState extends State<AssistantPage> {
 class WalletPage extends StatelessWidget {
   final bool english;
   final double balance;
-  final List<String> transactions;
+  final List<String> history;
   final VoidCallback onAdd;
 
   const WalletPage({
     super.key,
     required this.english,
     required this.balance,
-    required this.transactions,
+    required this.history,
     required this.onAdd,
   });
 
   @override
   Widget build(BuildContext context) {
-    final t = (String ar, String en) => english ? en : ar;
+    String t(String ar, String en) =>
+        english ? en : ar;
 
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         const BrandHeader(),
         const SizedBox(height: 25),
-        Text(t('المحفظة', 'Wallet'),
-          style: const TextStyle(
-            fontSize: 27, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 18),
+        SectionTitle(t('المحفظة', 'Wallet')),
+        const SizedBox(height: 15),
         Container(
-          padding: const EdgeInsets.all(22),
+          padding: const EdgeInsets.all(23),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [Color(0xFF633A9C), Color(0xFF241735)],
@@ -574,22 +615,21 @@ class WalletPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(t('الرصيد الافتراضي', 'Demo balance')),
-              const SizedBox(height: 15),
-              Text('\$ ${balance.toStringAsFixed(2)}',
+              const SizedBox(height: 14),
+              Text(
+                '\$ ${balance.toStringAsFixed(2)}',
                 style: const TextStyle(
-                  fontSize: 30, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 20),
+                    fontSize: 31, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 15),
               const Divider(color: Colors.white30),
-              Row(children: [
-                const Icon(Icons.lock_outline, size: 16),
-                const SizedBox(width: 7),
-                Text(t('محفظة تجريبية فقط', 'Demo wallet only')),
-              ]),
+              Text(t('محفظة تعليمية افتراضية',
+                  'Virtual educational wallet')),
             ],
           ),
         ),
-        const SizedBox(height: 20),
-        SectionTitle(t('بطاقتي الافتراضية', 'My virtual card')),
+        const SizedBox(height: 25),
+        SectionTitle(t('بطاقتي الافتراضية', 'My demo card')),
         const SizedBox(height: 12),
         Container(
           height: 190,
@@ -598,40 +638,14 @@ class WalletPage extends StatelessWidget {
             gradient: const LinearGradient(
               colors: [Color(0xFFB18AFF), Color(0xFF38205C)],
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(21),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Row(children: [
                 Text('SHAM CARD',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 2)),
+                    style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2)),
                 Spacer(),
-                Icon(Icons.contactless),
-              ]),
-              const Spacer(),
-              const Text('0000  ••••  ••••  2026',
-                style: TextStyle(
-                  fontSize: 19, letterSpacing: 1.5)),
-              const SizedBox(height: 10),
-              Row(children: [
-                Text(t('بطاقة تجريبية', 'DEMO CARD')),
-                const Spacer(),
-                const Text('SC'),
-              ]),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        Row(children: [
-          Expanded(child: SectionTitle(
-            t('سجل العمليات', 'Activity history'))),
-          TextButton.icon(
-            onPressed: onAdd,
-            icon: const Icon(Icons.add),
-            label: Text(t('إضافة تجريبية', 'Demo add')),
-          ),
-        ]),
-        const SizedBox(height
